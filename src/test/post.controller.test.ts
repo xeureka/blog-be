@@ -1,11 +1,11 @@
-import { readPost,showPosts } from "controller/post.controller";
+import { readPost,showPosts ,createPost} from "controller/post.controller";
 import { Request,Response } from "express";
 import Posts from '../models/post.model'
 
 
 jest.mock('../models/post.model')
 
-describe('readPost controller', () => {
+describe('Post Controller: ', () => {
     let req: Partial<Request>
     let res: Partial<Response>
     let jsonMock: jest.Mock
@@ -17,6 +17,13 @@ describe('readPost controller', () => {
 
         req = {params: {id:'123'}};
         res = {json: jsonMock, status: statusMock}
+
+        req = {
+            body: {
+                title: "Ethiopia and the Horn",
+                content: "Content of the post goes here."
+            }
+        }
     })
 
     it ('should return a post when found ', async () => {
@@ -72,7 +79,38 @@ describe('readPost controller', () => {
         expect(consoleSpy).toHaveBeenCalledWith(error)
     })
 
+    it('should create a post and return it', async () => {
+       const mockPost = { _id: '1', title: 'New Post', content: 'Post content here' };
+        (Posts.create as jest.Mock).mockResolvedValue(mockPost);
+
+        await createPost(req as Request, res as Response)
+
+        expect(Posts.create).toHaveBeenCalledWith(req.body);
+        expect(statusMock).toHaveBeenCalledWith(200);
+        expect(jsonMock).toHaveBeenCalledWith(mockPost);
+    })
+
+    it('should return an error if creation fails', async () => {
+        const mockError = new Error('Creation failed');
+        (Posts.create as jest.Mock).mockRejectedValue(mockError);
+        const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+
+        await createPost(req as Request, res as Response);
+
+        expect(statusMock).toHaveBeenCalledWith(400);
+        expect(jsonMock).toHaveBeenCalledWith({ message: 'Error creating post', error: mockError });
+        expect(consoleSpy).toHaveBeenCalledWith(mockError);
+
+        consoleSpy.mockRestore();
+    });
+
 })
+
+
+/** Lets write a test for create Post
+ * 1. create a post and return it
+ * 2. return an error if creation fails
+ */
 
 
 /** Lets write our own test for showPosts
