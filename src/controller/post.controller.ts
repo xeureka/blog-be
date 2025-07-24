@@ -5,10 +5,11 @@ import { verifyToken } from "../services/genToken";
 
 export const showPosts = async (req: Request, res: Response) =>{
     try {
-        const posts = await Posts.find().sort({createdAt: 1})
+        const posts = await Posts.find() //.sort({createdAt: 1})
         res.json(posts)
     } catch (error) {
-        res.json({message: "Error Fetching data", error: error})
+        res.json({message: "Error Fetching data"})
+        console.log(error)
     }
 }
 
@@ -17,7 +18,7 @@ export const readPost =  async (req: Request, res: Response) => {
         const postId = req.params.id;
         const post = await Posts.findById(postId)
         if (!post){
-            res.json({message: 'Error getting a post ! '}).status(400)
+            res.status(400).json({message: 'Error getting a post ! '})
             return;
         }
 
